@@ -5,3 +5,4 @@ monitor.log
 monitor.err.log
 reporte.html
 .DS_Store
+ntfy_topic.txt
