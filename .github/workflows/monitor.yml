@@ -2,7 +2,7 @@ name: Monitor de vuelos
 
 on:
   schedule:
-    - cron: "7 */3 * * *"   # cada 3 horas (UTC), incluida la madrugada en México
+    - cron: "7 */3 * * *"   # cada 3 horas (UTC), incluida la madrugada
   workflow_dispatch:        # permite correrlo a mano desde GitHub
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     env:
-      TZ: America/Mexico_City
+      TZ: America/New_York
       NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
       REPORTE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
     steps:
