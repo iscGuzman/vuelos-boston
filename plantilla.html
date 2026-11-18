@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vuelos a Boston</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vuelos BOS">
+<meta name="theme-color" content="#1f5eff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+:root{
+  --bg:#f6f5f1; --card:#ffffff; --ink:#1d1f24; --muted:#6b6f78; --line:#e4e2dc;
+  --acc:#1f5eff; --acc-soft:#e7eeff; --good:#0f8a5f; --good-soft:#e1f4ec; --bad:#c2410c;
+  --mlm:#1f5eff; --qro:#d9480f;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#121316; --card:#1b1d22; --ink:#ecedf0; --muted:#9a9ea8; --line:#2b2e35;
+    --acc:#7aa2ff; --acc-soft:#1e2742; --good:#4cc596; --good-soft:#15302a; --bad:#ff8a5c;
+    --mlm:#7aa2ff; --qro:#ff9d6b;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 60px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:22px}
+h1{margin:0;font-size:28px;letter-spacing:-.02em}
+h2{font-size:15px;margin:0 0 12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sub{color:var(--muted);font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:13px}
+.kpi .d{font-size:13px;margin-top:4px}
+.up{color:var(--bad)} .down{color:var(--good)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);padding:7px 12px;font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--acc);color:#fff}
+label.f{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+select,input[type=range]{font:inherit;font-size:14px}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-size:14px;white-space:nowrap}
+th{color:var(--muted);font-weight:600;cursor:pointer;user-select:none;font-size:13px}
+th.sorted::after{content:" ▾"} th.sorted.asc::after{content:" ▴"}
+td.p{font-weight:700}
+tr.best td{background:var(--good-soft)}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.tag.MLM{background:color-mix(in srgb,var(--mlm) 15%,transparent);color:var(--mlm)}
+.tag.QRO{background:color-mix(in srgb,var(--qro) 15%,transparent);color:var(--qro)}
+.tag.cheap{background:var(--good-soft);color:var(--good)}
+a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+.tablewrap{overflow-x:auto}
+.heat{display:grid;gap:6px}
+.heat .row{display:grid;grid-template-columns:56px repeat(var(--n),1fr);gap:6px;align-items:center}
+.heat .cell{border-radius:8px;padding:10px 4px;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.heat .hd{font-size:12px;color:var(--muted);text-align:center}
+svg text{fill:var(--muted);font-size:11px}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.empty{color:var(--muted);padding:20px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Vuelos a Boston ✈️</h1>
+      <div class="sub">Morelia / Querétaro → Boston · 5–10 feb 2027 · regreso finales de mayo · máx. 9 h por trayecto</div>
+    </div>
+    <div class="sub" id="upd"></div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid2">
+    <div class="card">
+      <h2>Precio por fecha (último chequeo)</h2>
+      <div id="heat"></div>
+      <div class="note">Verde = más barato. Toca una celda para filtrar la tabla por esa fecha.</div>
+    </div>
+    <div class="card">
+      <h2>Evolución del precio más bajo (ida)</h2>
+      <div id="trend"></div>
+      <div class="legend"><span><i style="background:var(--mlm)"></i>Morelia</span><span><i style="background:var(--qro)"></i>Querétaro</span></div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:16px">
+    <h2>Opciones disponibles</h2>
+    <div class="filters">
+      <div class="seg" id="fTipo"><button data-v="ida" class="on">Ida (feb)</button><button data-v="regreso">Regreso (may)</button></div>
+      <div class="seg" id="fOrig"><button data-v="" class="on">Ambos</button><button data-v="MLM">Morelia</button><button data-v="QRO">Querétaro</button></div>
+      <label class="f">Fecha <select id="fFecha"></select></label>
+      <label class="f">Aerolínea <select id="fAer"></select></label>
+      <label class="f">Precio máx. <input type="range" id="fMax"><span id="fMaxV"></span></label>
+      <label class="f"><input type="checkbox" id="fBest"> Solo el más barato por fecha</label>
+    </div>
+    <div class="tablewrap"><table id="tbl"><thead><tr>
+      <th data-k="fecha">Fecha</th><th data-k="origen">Origen</th><th data-k="aerolinea">Aerolínea</th>
+      <th data-k="ruta">Ruta</th><th data-k="salida">Sale</th><th data-k="llegada">Llega</th>
+      <th data-k="precio">Precio</th><th data-k="cambio">vs. 1er chequeo</th><th></th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card">
+      <h2>¿Influye la hora en que buscas?</h2>
+      <div id="byHour"></div>
+      <div class="note" id="hourNote"></div>
+    </div>
+    <div class="card">
+      <h2>¿Influye el día de la semana?</h2>
+      <div id="byDay"></div>
+      <div class="note">Promedio del precio más bajo de ida encontrado en cada chequeo.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+const D = /*DATA*/null;
+const $ = s => document.querySelector(s);
+const mx = n => "$" + Math.round(n).toLocaleString("es-MX");
+const DIAS = ["dom","lun","mar","mié","jue","vie","sáb"];
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fmtF = s => { const d = new Date(s+"T12:00"); return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`; };
+const fmtT = s => { const d = new Date(s); return `${d.getDate()} ${MESES[d.getMonth()]} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const gUrl = r => {
+  const [a,b] = r.tipo==="ida" ? [r.origen,"BOS"] : ["BOS",r.origen];
+  return `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${a} to ${b} on ${r.fecha} one way`)}&hl=es&curr=MXN`;
+};
+
+const st = {tipo:"ida", orig:"", fecha:"", aer:"", max:Infinity, best:false, sort:"precio", asc:true};
+
+// precio del primer chequeo por (tipo, origen, fecha) para comparar
+const first = {}, minNow = {};
+D.serie.forEach(s => { const k = s.tipo+s.origen+s.fecha; if(!(k in first)) first[k] = s.precio; });
+D.actual.forEach(r => { const k = r.tipo+r.origen+r.fecha; minNow[k] = Math.min(minNow[k] ?? Infinity, r.precio); });
+D.actual.forEach(r => { const k = r.tipo+r.origen+r.fecha; r.cambio = r.precio === minNow[k] ? minNow[k] - first[k] : null; });
+
+$("#upd").textContent = `Último chequeo: ${fmtT(D.ultimo)} · ${D.n} chequeos desde ${fmtT(D.primero)}`;
+
+function kpis(){
+  const min = (t,o) => D.actual.filter(r=>r.tipo===t && (!o||r.origen===o)).sort((a,b)=>a.precio-b.precio)[0];
+  const ida = min("ida"), reg = min("regreso");
+  const serieMin = {};
+  D.serie.filter(s=>s.tipo==="ida").forEach(s => serieMin[s.c] = Math.min(serieMin[s.c] ?? Infinity, s.precio));
+  const vals = Object.values(serieMin), hist = vals.length ? Math.min(...vals) : null, pri = vals[0];
+  const combo = ["QRO","MLM"].map(o => { const a=min("ida",o), b=min("regreso",o); return a&&b ? {o, t:a.precio+b.precio} : null; }).filter(Boolean).sort((a,b)=>a.t-b.t)[0];
+  const diff = ida && pri ? ida.precio - pri : 0;
+  const cards = [
+    ida && {l:"Ida más barata ahora", v:mx(ida.precio), d:`${ida.origen} · ${fmtF(ida.fecha)} · ${ida.aerolinea}`},
+    ida && {l:"Cambio desde el 1er chequeo", v:(diff>0?"+":diff<0?"−":"")+mx(Math.abs(diff)), d: diff<0?"<span class=down>Bajó 👍</span>":diff>0?"<span class=up>Subió</span>":"Sin cambio", raw:true},
+    hist && {l:"Mínimo histórico (ida)", v:mx(hist), d: ida && ida.precio<=hist ? "<span class=down>¡Estás en el mínimo!</span>" : `Hoy está ${mx(ida.precio-hist)} arriba`},
+    reg && {l:"Regreso más barato (may)", v:mx(reg.precio), d:`BOS→${reg.origen} · ${fmtF(reg.fecha)}`},
+    combo && {l:"Ida + regreso (2 sencillos)", v:mx(combo.t), d:`Por ${combo.o==="QRO"?"Querétaro":"Morelia"} · compara con el redondo`},
+  ].filter(Boolean);
+  $("#kpis").innerHTML = cards.map(c=>`<div class="card kpi"><div class="l">${c.l}</div><div class="v">${c.v}</div><div class="d">${c.d}</div></div>`).join("");
+}
+
+function heat(){
+  const fechas = [...new Set(D.actual.filter(r=>r.tipo===st.tipo).map(r=>r.fecha))].sort();
+  const cell = {}; D.actual.filter(r=>r.tipo===st.tipo).forEach(r=>{const k=r.origen+r.fecha; cell[k]=Math.min(cell[k]??Infinity,r.precio);});
+  const v = Object.values(cell); if(!v.length){ $("#heat").innerHTML='<div class="empty">Sin datos</div>'; return; }
+  const lo=Math.min(...v), hi=Math.max(...v);
+  const color = p => { const t = hi===lo?0:(p-lo)/(hi-lo); return `color-mix(in srgb, var(--good) ${Math.round(70-60*t)}%, var(--card))`; };
+  let h = `<div class="heat" style="--n:${fechas.length}"><div class="row"><div></div>${fechas.map(f=>`<div class="hd">${fmtF(f)}</div>`).join("")}</div>`;
+  for(const o of ["MLM","QRO"]){
+    h += `<div class="row"><div><span class="tag ${o}">${o}</span></div>` + fechas.map(f=>{
+      const p = cell[o+f]; return p ? `<div class="cell" style="background:${color(p)};cursor:pointer" data-f="${f}" data-o="${o}" title="${mx(p)}">${(p/1000).toFixed(1)}k</div>` : `<div class="cell" style="color:var(--muted)">—</div>`;
+    }).join("") + `</div>`;
+  }
+  $("#heat").innerHTML = h + "</div>";
+  $("#heat").querySelectorAll("[data-f]").forEach(c=>c.onclick=()=>{ st.fecha=c.dataset.f; st.orig=c.dataset.o; syncSeg(); $("#fFecha").value=st.fecha; table(); });
+}
+
+function line(el, series, labels){
+  const W=520,H=200,P={l:52,r:26,t:10,b:26};
+  const all = series.flatMap(s=>s.pts.map(p=>p.y)).filter(Number.isFinite);
+  if(all.length<1){ el.innerHTML='<div class="empty">Sin datos</div>'; return; }
+  let lo=Math.min(...all), hi=Math.max(...all); if(hi===lo){lo-=500;hi+=500;}
+  const n = labels.length, x = i => P.l + (n<=1 ? (W-P.l-P.r)/2 : i*(W-P.l-P.r)/(n-1)), y = v => P.t + (hi-v)*(H-P.t-P.b)/(hi-lo);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">`;
+  for(let k=0;k<=3;k++){ const v=lo+(hi-lo)*k/3; s+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="${css("--line")}"/><text x="${P.l-6}" y="${y(v)+4}" text-anchor="end">${mx(v)}</text>`; }
+  const step = Math.max(1, Math.ceil(n/6));
+  labels.forEach((l,i)=>{ if(i%step===0||i===n-1) s+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle">${l}</text>`; });
+  series.forEach(se=>{
+    const pts = se.pts.map((p,i)=>Number.isFinite(p.y)?[x(i),y(p.y),p]:null).filter(Boolean);
+    s += `<polyline fill="none" stroke="${se.color}" stroke-width="2.5" points="${pts.map(p=>p[0]+","+p[1]).join(" ")}"/>`;
+    pts.forEach(p=> s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${se.color}"><title>${p[2].t}: ${mx(p[2].y)}</title></circle>`);
+  });
+  el.innerHTML = s + "</svg>";
+}
+
+function trend(){
+  const cs = [...new Set(D.serie.map(s=>s.c))].sort();
+  const series = ["MLM","QRO"].map(o=>({color:css(o==="MLM"?"--mlm":"--qro"), pts: cs.map(c=>{
+    const v = D.serie.filter(s=>s.c===c && s.origen===o && s.tipo==="ida").map(s=>s.precio);
+    return {y: v.length?Math.min(...v):NaN, t: fmtT(c)};
+  })}));
+  const unDia = new Set(cs.map(c=>c.slice(0,10))).size === 1;
+  line($("#trend"), series, cs.map(c=> unDia ? c.slice(11,16) : fmtT(c).replace(/ \d\d:\d\d$/,"")));
+}
+
+function bars(el, rows, highlight){
+  if(!rows.length){ el.innerHTML='<div class="empty">Sin datos todavía</div>'; return; }
+  const lo = Math.min(...rows.map(r=>r.v)), hi = Math.max(...rows.map(r=>r.v)), base = lo - (hi-lo || lo*0.02)*0.6;
+  el.innerHTML = rows.map(r=>{
+    const w = 15 + 85*(r.v-base)/(hi-base);
+    const best = r.v===lo && hi>lo;
+    return `<div style="display:grid;grid-template-columns:52px 1fr 92px;gap:8px;align-items:center;margin:5px 0;font-size:13px">
+      <span style="color:var(--muted)">${r.k}</span>
+      <div style="height:16px;border-radius:5px;width:${w}%;background:${best?css("--good"):css("--acc")};opacity:${best?1:.55}"></div>
+      <span style="font-variant-numeric:tabular-nums">${mx(r.v)} <span style="color:var(--muted)">(${r.n})</span></span></div>`;
+  }).join("");
+}
+
+function patterns(){
+  const per = {}; D.serie.filter(s=>s.tipo==="ida").forEach(s=> per[s.c]=Math.min(per[s.c]??Infinity,s.precio));
+  const agg = f => { const m={}; Object.entries(per).forEach(([c,p])=>{ const k=f(new Date(c)); (m[k]??=[]).push(p); }); return m; };
+  const h = agg(d=>d.getHours()), dd = agg(d=>d.getDay());
+  const avg = a => a.reduce((x,y)=>x+y,0)/a.length;
+  bars($("#byHour"), Object.keys(h).sort((a,b)=>a-b).map(k=>({k:String(k).padStart(2,"0")+":00", v:avg(h[k]), n:h[k].length})));
+  bars($("#byDay"), Object.keys(dd).sort().map(k=>({k:DIAS[k], v:avg(dd[k]), n:dd[k].length})));
+  const nH = Object.keys(h).length, tot = Object.keys(per).length;
+  $("#hourNote").textContent = tot < 30
+    ? `Con ${tot} chequeos aún no hay suficiente información; deja correr el monitor 1–2 semanas. (Entre paréntesis: número de chequeos.)`
+    : `Basado en ${tot} chequeos en ${nH} horarios distintos. Si las barras casi no cambian, la hora no importa.`;
+}
+
+function fillSelects(){
+  const rows = D.actual.filter(r=>r.tipo===st.tipo);
+  const fs = [...new Set(rows.map(r=>r.fecha))].sort();
+  $("#fFecha").innerHTML = `<option value="">Todas</option>` + fs.map(f=>`<option value="${f}">${fmtF(f)}</option>`).join("");
+  const as = [...new Set(rows.flatMap(r=>r.aerolinea.split(", ")))].sort();
+  $("#fAer").innerHTML = `<option value="">Todas</option>` + as.map(a=>`<option>${a}</option>`).join("");
+  const ps = rows.map(r=>r.precio), lo=Math.min(...ps), hi=Math.max(...ps);
+  Object.assign($("#fMax"), {min: Math.floor(lo/100)*100, max: Math.ceil(hi/100)*100, step:100, value: Math.ceil(hi/100)*100});
+  st.fecha=""; st.aer=""; st.max=Infinity; $("#fMaxV").textContent = rows.length ? mx(+$("#fMax").value) : "";
+}
+
+function table(){
+  let rows = D.actual.filter(r=> r.tipo===st.tipo && (!st.orig||r.origen===st.orig) && (!st.fecha||r.fecha===st.fecha)
+    && (!st.aer||r.aerolinea.includes(st.aer)) && r.precio<=st.max);
+  if(st.best){ const m={}; rows.forEach(r=>{const k=r.origen+r.fecha; if(!m[k]||r.precio<m[k].precio) m[k]=r;}); rows=Object.values(m); }
+  const k = st.sort, dir = st.asc?1:-1;
+  rows.sort((a,b)=> (a[k]??Infinity) > (b[k]??Infinity) ? dir : (a[k]??Infinity) < (b[k]??Infinity) ? -dir : a.precio-b.precio || a.fecha.localeCompare(b.fecha));
+  const lo = Math.min(...rows.map(r=>r.precio));
+  document.querySelectorAll("#tbl th").forEach(th=>{ th.classList.toggle("sorted", th.dataset.k===k); th.classList.toggle("asc", st.asc); });
+  $("#tbl tbody").innerHTML = rows.length ? rows.map(r=>{
+    const isMin = r.precio === minNow[r.tipo+r.origen+r.fecha];
+    const ch = r.cambio==null ? "" : r.cambio<0 ? `<span class=down>▼ ${mx(-r.cambio)}</span>` : r.cambio>0 ? `<span class=up>▲ ${mx(r.cambio)}</span>` : `<span style="color:var(--muted)">=</span>`;
+    return `<tr class="${r.precio===lo?"best":""}"><td>${fmtF(r.fecha)}</td><td><span class="tag ${r.origen}">${r.origen}</span></td>
+      <td>${r.aerolinea}</td><td>${r.ruta.replaceAll("-"," → ")}</td><td>${r.salida}</td><td>${r.llegada}</td>
+      <td class="p">${mx(r.precio)} ${isMin?'<span class="tag cheap">mín. del día</span>':""}</td><td>${ch}</td>
+      <td><a href="${gUrl(r)}" target="_blank" rel="noopener">Ver en Google ↗</a></td></tr>`;
+  }).join("") : `<tr><td colspan="9" class="empty">Nada coincide con los filtros</td></tr>`;
+}
+
+function syncSeg(){
+  document.querySelectorAll("#fTipo button").forEach(b=>b.classList.toggle("on", b.dataset.v===st.tipo));
+  document.querySelectorAll("#fOrig button").forEach(b=>b.classList.toggle("on", b.dataset.v===st.orig));
+}
+
+document.querySelectorAll("#fTipo button").forEach(b=>b.onclick=()=>{ st.tipo=b.dataset.v; syncSeg(); fillSelects(); heat(); table(); });
+document.querySelectorAll("#fOrig button").forEach(b=>b.onclick=()=>{ st.orig=b.dataset.v; syncSeg(); table(); });
+$("#fFecha").onchange = e=>{ st.fecha=e.target.value; table(); };
+$("#fAer").onchange = e=>{ st.aer=e.target.value; table(); };
+$("#fMax").oninput = e=>{ st.max=+e.target.value; $("#fMaxV").textContent=mx(st.max); table(); };
+$("#fBest").onchange = e=>{ st.best=e.target.checked; table(); };
+document.querySelectorAll("#tbl th[data-k]").forEach(th=>th.onclick=()=>{ if(st.sort===th.dataset.k) st.asc=!st.asc; else {st.sort=th.dataset.k; st.asc=true;} table(); });
+
+kpis(); fillSelects(); heat(); trend(); patterns(); table();
+</script>
+</body>
+</html>

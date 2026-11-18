@@ -1,0 +1,7 @@
+.venv/
+.claude/
+__pycache__/
+monitor.log
+monitor.err.log
+reporte.html
+.DS_Store
